@@ -1,9 +1,27 @@
 package main
 
 import (
-	"github.com/Edouard127/FurryProtectorGo/i8n"
+	"github.com/Edouard127/FurryProtectorGo/client"
+	"github.com/joho/godotenv"
+	"go.uber.org/zap"
+	"os"
 )
 
 func main() {
-	i8n.TranslateRaw("Please chose something in the following rows or press the cancel button.", "ru", 1)
+	godotenv.Load()
+
+	logger, _ := zap.NewDevelopment()
+
+	bot, err := client.NewClient(logger.With(zap.String("module", "client")), os.Getenv("TOKEN"))
+	if err != nil {
+		bot.Panic("Error while creating bot", zap.Error(err))
+	}
+
+	err = bot.Open()
+	if err != nil {
+		bot.Panic("Error while opening bot", zap.Error(err))
+	}
+
+	for {
+	}
 }
