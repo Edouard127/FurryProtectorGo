@@ -75,3 +75,13 @@ func doPrometheus(registry *prometheus.Registry) {
 
 	log.Fatalln(http.ListenAndServe(":8080", nil))
 }
+
+func (c *Client) UserCount() int {
+	var count int
+
+	for _, guild := range c.State.Guilds {
+		count += guild.MemberCount
+	}
+
+	return count
+}
