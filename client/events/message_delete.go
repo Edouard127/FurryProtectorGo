@@ -16,8 +16,8 @@ type MessageDeleteEvent struct {
 func NewMessageDeleteEvent(logger *zap.Logger, client *discordgo.Session, registry *prometheus.Registry) *MessageDeleteEvent {
 	mCounter := prometheus.NewCounterVec(prometheus.CounterOpts{
 		Name: "discord_messages_delete_number",
-		Help: "The number of messages deleted by guild by channel per user",
-	}, []string{"guild", "channel", "user"})
+		Help: "The number of messages deleted by guild by channel",
+	}, []string{"guild", "channel"})
 
 	registry.MustRegister(mCounter)
 
@@ -25,5 +25,5 @@ func NewMessageDeleteEvent(logger *zap.Logger, client *discordgo.Session, regist
 }
 
 func (m *MessageDeleteEvent) Run(_ *discordgo.Session, message *discordgo.MessageDelete) {
-	m.messageCounter.With(prometheus.Labels{"guild": message.GuildID, "channel": message.ChannelID, "user": message.Author.ID}).Inc()
+	m.messageCounter.With(prometheus.Labels{"guild": message.GuildID, "channel": message.ChannelID}).Inc()
 }
