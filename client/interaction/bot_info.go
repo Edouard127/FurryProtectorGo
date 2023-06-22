@@ -1,6 +1,7 @@
-package general
+package interaction
 
 import (
+	"github.com/Edouard127/FurryProtectorGo/client/database"
 	"github.com/Edouard127/FurryProtectorGo/client/template"
 	"github.com/Edouard127/FurryProtectorGo/core/builder/components/embed"
 	"github.com/Edouard127/FurryProtectorGo/core/builder/interaction"
@@ -14,7 +15,7 @@ type BotInfo struct {
 	interaction.Runner[discordgo.InteractionCreate]
 }
 
-func NewBotInfo(logger *zap.Logger) (string, *BotInfo) {
+func NewBotInfo(logger *zap.Logger, db *database.Database) (string, *BotInfo) {
 	return "info", &BotInfo{Logger: logger, SlashInteractionBuilder: interaction.NewSlashInteractionBuilder("info", "Display the current information about the bot")}
 }
 
