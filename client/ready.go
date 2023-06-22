@@ -3,16 +3,18 @@ package client
 import (
 	"fmt"
 	"github.com/bwmarrin/discordgo"
+	"github.com/prometheus/client_golang/prometheus"
 	"go.uber.org/zap"
 )
 
 type ReadyEvent struct {
 	*zap.Logger
 	*Client
+	*prometheus.Registry
 }
 
-func NewReadyEvent(logger *zap.Logger, client *Client) *ReadyEvent {
-	return &ReadyEvent{logger, client}
+func NewReadyEvent(logger *zap.Logger, client *Client, registry *prometheus.Registry) *ReadyEvent {
+	return &ReadyEvent{logger, client, registry}
 }
 
 func (r *ReadyEvent) Run(session *discordgo.Session, ready *discordgo.Ready) {

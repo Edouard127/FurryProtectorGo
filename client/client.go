@@ -4,7 +4,12 @@ import (
 	"github.com/Edouard127/FurryProtectorGo/client/interaction/general"
 	"github.com/Edouard127/FurryProtectorGo/registers"
 	"github.com/bwmarrin/discordgo"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/collectors"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"go.uber.org/zap"
+	"log"
+	"net/http"
 	"os"
 )
 
@@ -28,8 +33,11 @@ func NewClient(logger *zap.Logger, token string) (c *Client, err error) {
 }
 
 func doPreInit(logger *zap.Logger, client *Client) *Client {
-	doEvents(logger, client)
-	doCommands(logger, client)
+	registry := prometheus.NewRegistry()
+
+	go doPrometheus(registry)
+	doEvents(logger, client, registry)
+	doCommands(logger, client, registry)
 
 	endpoint := discordgo.EndpointApplicationGlobalCommands(os.Getenv("APP_ID"))
 
@@ -43,21 +51,27 @@ func doPreInit(logger *zap.Logger, client *Client) *Client {
 	return client
 }
 
-func doEvents(logger *zap.Logger, client *Client) {
-	client.AddHandler(NewReadyEvent(logger.With(zap.String("module", "events"), zap.String("event", "ready")), client).Run)
-	client.AddHandler(NewInteractionCreateEvent(logger.With(zap.String("module", "events"), zap.String("event", "interaction_create")), client).Run)
+func doEvents(logger *zap.Logger, client *Client, registry *prometheus.Registry) {
+	client.AddHandler(NewReadyEvent(logger.With(zap.String("module", "events"), zap.String("event", "ready")), client, registry).Run)
+	client.AddHandler(NewInteractionCreateEvent(logger.With(zap.String("module", "events"), zap.String("event", "interaction_create")), client, registry).Run)
+	client.AddHandler(NewMessageCreateEvent(logger.With(zap.String("module", "events"), zap.String("event", "message_create")), client, registry).Run)
 }
 
-func doCommands(logger *zap.Logger, client *Client) {
+func doCommands(logger *zap.Logger, client *Client, registry *prometheus.Registry) {
 	client.InteractionCommands.Register(general.NewBotInfo(logger.With(zap.String("module", "general"), zap.String("command", "info"))))
 }
 
-func (c *Client) Users() []*discordgo.User {
-	var users []*discordgo.User
-	for _, guild := range c.State.Guilds {
-		for _, member := range guild.Members {
-			users = append(users, member.User)
-		}
-	}
-	return users
+func doPrometheus(registry *prometheus.Registry) {
+	registry.MustRegister(collectors.NewGoCollector(),
+		collectors.NewProcessCollector(collectors.ProcessCollectorOpts{}))
+
+	http.Handle(
+		"/metrics", promhttp.HandlerFor(
+			registry,
+			promhttp.HandlerOpts{
+				EnableOpenMetrics: true,
+			}),
+	)
+
+	log.Fatalln(http.ListenAndServe(":8080", nil))
 }
