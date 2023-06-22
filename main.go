@@ -14,12 +14,12 @@ func main() {
 
 	bot, err := client.NewClient(logger.With(zap.String("module", "client")), os.Getenv("TOKEN"))
 	if err != nil {
-		bot.Panic("Error while creating bot", zap.Error(err))
+		logger.Panic("Error while creating bot", zap.Error(err))
 	}
 
 	err = bot.Open()
 	if err != nil {
-		bot.Panic("Error while opening bot", zap.Error(err))
+		logger.Panic("Error while opening bot", zap.Error(err))
 	}
 
 	for {

@@ -1,4 +1,4 @@
-package client
+package events
 
 import (
 	"github.com/bwmarrin/discordgo"
@@ -6,24 +6,24 @@ import (
 	"go.uber.org/zap"
 )
 
-type MessageCreateEvent struct {
+type MessageDeleteEvent struct {
 	*zap.Logger
-	*Client
+	*discordgo.Session
 	*prometheus.Registry
 	messageCounter *prometheus.CounterVec
 }
 
-func NewMessageCreateEvent(logger *zap.Logger, c *Client, registry *prometheus.Registry) *MessageCreateEvent {
+func NewMessageDeleteEvent(logger *zap.Logger, client *discordgo.Session, registry *prometheus.Registry) *MessageDeleteEvent {
 	mCounter := prometheus.NewCounterVec(prometheus.CounterOpts{
-		Name: "discord_messages_number",
-		Help: "The number of messages received by guild by channel per user",
+		Name: "discord_messages_delete_number",
+		Help: "The number of messages deleted by guild by channel per user",
 	}, []string{"guild", "channel", "user"})
 
 	registry.MustRegister(mCounter)
 
-	return &MessageCreateEvent{logger, c, registry, mCounter}
+	return &MessageDeleteEvent{logger, client, registry, mCounter}
 }
 
-func (m *MessageCreateEvent) Run(_ *discordgo.Session, message *discordgo.MessageCreate) {
+func (m *MessageDeleteEvent) Run(_ *discordgo.Session, message *discordgo.MessageDelete) {
 	m.messageCounter.With(prometheus.Labels{"guild": message.GuildID, "channel": message.ChannelID, "user": message.Author.ID}).Inc()
 }

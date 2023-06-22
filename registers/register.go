@@ -2,7 +2,10 @@ package registers
 
 import (
 	"github.com/Edouard127/FurryProtectorGo/core/builder/interaction"
+	"github.com/bwmarrin/discordgo"
 )
+
+var InteractionCommands = NewRegister[discordgo.InteractionCreate]()
 
 type RunnerRegister[T any] struct {
 	Runners map[string]interaction.Runner[T]

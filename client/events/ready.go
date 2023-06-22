@@ -1,4 +1,4 @@
-package client
+package events
 
 import (
 	"fmt"
@@ -9,11 +9,11 @@ import (
 
 type ReadyEvent struct {
 	*zap.Logger
-	*Client
+	*discordgo.Session
 	*prometheus.Registry
 }
 
-func NewReadyEvent(logger *zap.Logger, client *Client, registry *prometheus.Registry) *ReadyEvent {
+func NewReadyEvent(logger *zap.Logger, client *discordgo.Session, registry *prometheus.Registry) *ReadyEvent {
 	return &ReadyEvent{logger, client, registry}
 }
 
