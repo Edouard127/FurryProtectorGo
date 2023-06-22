@@ -20,12 +20,9 @@ func getContext() (context.Context, context.CancelFunc) {
 }
 
 func NewDatabase(logger *zap.Logger, url, name string, check ...string) *Database {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := getContext()
 
-	go func() {
-		<-ctx.Done()
-		cancel()
-	}()
+	defer cancel()
 
 	client, err := mongo.Connect(ctx, options.Client().ApplyURI(url))
 	if err != nil {
@@ -40,7 +37,7 @@ func NewDatabase(logger *zap.Logger, url, name string, check ...string) *Databas
 }
 
 func (d *Database) Write(collection string, data any) (err error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	ctx, cancel := getContext()
 	defer cancel()
 
 	_, err = d.Database(d.database).Collection(collection).InsertOne(ctx, data)
@@ -48,7 +45,7 @@ func (d *Database) Write(collection string, data any) (err error) {
 }
 
 func (d *Database) Read(collection string, filter bson.M, data any) (err error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	ctx, cancel := getContext()
 	defer cancel()
 
 	return d.Database(d.database).Collection(collection).FindOne(ctx, filter).Decode(&data)
