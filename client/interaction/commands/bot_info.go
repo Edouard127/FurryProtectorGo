@@ -12,7 +12,6 @@ import (
 type BotInfo struct {
 	*zap.Logger
 	*interaction.SlashInteractionBuilder
-	interaction.Runner[discordgo.InteractionCreate]
 }
 
 func NewBotInfo(logger *zap.Logger, db *database.Database) (string, *BotInfo) {

@@ -12,7 +12,7 @@ type SlashInteractionStringOption struct {
 }
 
 func NewSlashInteractionStringOption(name, description string) *SlashInteractionStringOption {
-	return &SlashInteractionStringOption{NewSlashInteractionOption(String, name, description), 0, 0}
+	return &SlashInteractionStringOption{NewSlashInteractionOption(String, name, description), 1, 255}
 }
 
 func (s *SlashInteractionStringOption) SetMinLength(i int) *SlashInteractionStringOption {

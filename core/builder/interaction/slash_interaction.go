@@ -34,8 +34,8 @@ func NewSlashInteractionBuilder(name, description string) *SlashInteractionBuild
 	}
 }
 
-func (b *SlashInteractionBuilder) AddOption(option SlashInteraction) *SlashInteractionBuilder {
-	b.Options = append(b.Options, option)
+func (b *SlashInteractionBuilder) AddOption(option ...SlashInteraction) *SlashInteractionBuilder {
+	b.Options = append(b.Options, option...)
 	return b
 }
 

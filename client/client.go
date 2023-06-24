@@ -58,6 +58,7 @@ func doEvents(logger *zap.Logger, client *discordgo.Session, db *database.Databa
 
 func doCommands(logger *zap.Logger, db *database.Database) {
 	registers.InteractionCommands.Register(commands.NewBotInfo(logger.With(zap.String("module", "general"), zap.String("command", "info")), db))
+	registers.InteractionCommands.Register(commands.NewAddEmoji(logger.With(zap.String("module", "general"), zap.String("command", "add_emoji")), db))
 }
 
 func doPrometheus(registry *prometheus.Registry) {
