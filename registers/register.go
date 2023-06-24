@@ -5,7 +5,11 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
-var InteractionCommands = NewRegister[discordgo.InteractionCreate]()
+var (
+	InteractionComponents = NewRegister[discordgo.InteractionCreate]()
+	InteractionCommands   = NewRegister[discordgo.InteractionCreate]()
+	InteractionModals     = NewRegister[discordgo.InteractionCreate]()
+)
 
 type RunnerRegister[T any] struct {
 	Runners map[string]interaction.Runner[T]

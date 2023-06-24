@@ -1,4 +1,4 @@
-package interaction
+package commands
 
 import (
 	"github.com/Edouard127/FurryProtectorGo/client/database"

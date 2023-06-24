@@ -5,11 +5,11 @@ type UserData struct {
 	Messages []UserMessage `bson:"messages"`
 }
 
-func NewUserData(id string) *UserData {
-	return &UserData{id, []UserMessage{}}
+func NewUserData(id string) UserData {
+	return UserData{id, []UserMessage{}}
 }
 
-func (u *UserData) AddMessage(message UserMessage) *UserData {
+func (u UserData) AddMessage(message UserMessage) UserData {
 	u.Messages = append(u.Messages, message)
 	return u
 }
