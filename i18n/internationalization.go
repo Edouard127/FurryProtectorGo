@@ -59,23 +59,23 @@ func init() {
 	AddLocalizer(Vietnamese, &en.Map)
 }
 
-var localizers = make(map[string]*map[string]string)
+var localizers = make(map[Locale]*map[string]string)
 
 func AddLocalizer(lang Locale, locale *map[string]string) {
-	localizers[lang.String()] = locale
+	localizers[lang] = locale
 }
 
 func TranslateRaw(text string, to Locale, data ...any) string {
-	return filli18nData(replaceInvalid(localizers[to.String()], findKey(en.Map, text)), data)
+	return filli18nData(replaceInvalid(localizers[to], findKey(en.Map, text)), data)
 }
 
 func Translate(id string, to Locale, data ...any) string {
-	return filli18nData(replaceInvalid(localizers[to.String()], id), data)
+	return filli18nData(replaceInvalid(localizers[to], id), data)
 }
 
 func replaceInvalid(m *map[string]string, id string) string {
 	if (*m)[id] == "" {
-		return en.Map[id]
+		return (*localizers[EnglishUS])[id]
 	}
 	return (*m)[id]
 }
