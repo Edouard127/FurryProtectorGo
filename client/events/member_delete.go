@@ -21,4 +21,5 @@ func NewMemberDeleteEvent(logger *zap.Logger, client *discordgo.Session, db *dat
 func (m *MemberEventDelete) Run(_ *discordgo.Session, event *discordgo.GuildMemberAdd) {
 	exporter.MemberGauge.With(prometheus.Labels{"guild": event.GuildID}).Dec()
 	exporter.MemberDeleteCounter.With(prometheus.Labels{"guild": event.GuildID}).Inc()
+	m.Logger.Debug("Member deleted", zap.String("guild", event.GuildID), zap.String("member", event.Member.User.ID))
 }

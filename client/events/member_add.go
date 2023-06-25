@@ -21,4 +21,5 @@ func NewMemberJoinEvent(logger *zap.Logger, client *discordgo.Session, db *datab
 func (m *MemberEventJoin) Run(_ *discordgo.Session, event *discordgo.GuildMemberAdd) {
 	exporter.MemberGauge.With(prometheus.Labels{"guild": event.GuildID}).Inc()
 	exporter.MemberJoinCounter.With(prometheus.Labels{"guild": event.GuildID}).Inc()
+	m.Logger.Debug("Member joined", zap.String("guild", event.GuildID), zap.String("member", event.Member.User.ID))
 }
