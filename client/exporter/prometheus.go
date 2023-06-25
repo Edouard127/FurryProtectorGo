@@ -44,7 +44,7 @@ var (
 	}, []string{"guild", "channel", "user"})
 )
 
-func DoRegister(registry *prometheus.Registry) {
+func DoRegister(registry *prometheus.Registry) *prometheus.Registry {
 	registry.MustRegister(InterationHist,
 		MemberGauge,
 		MemberJoinCounter,
@@ -52,4 +52,5 @@ func DoRegister(registry *prometheus.Registry) {
 		MessageCreateCounter,
 		MessageDeleteCounter,
 		MessageUpdateCounter)
+	return registry
 }

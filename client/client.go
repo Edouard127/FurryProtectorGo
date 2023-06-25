@@ -16,21 +16,29 @@ import (
 	"os"
 )
 
-func NewClient(logger *zap.Logger, token string) (client *discordgo.Session, err error) {
-	client, err = discordgo.New("Bot " + token)
+func NewClient(logger *zap.Logger, token string) {
+	client, err := discordgo.New("Bot " + token)
 	if err != nil {
-		return nil, err
+		logger.Panic("Error while creating bot", zap.Error(err))
 	}
 
-	return doPreInit(logger, client), nil
+	client.Identify.Intents = discordgo.IntentsAll
+
+	StartClient(logger, doPreInit(logger, client), exporter.DoRegister(prometheus.NewRegistry()))
+}
+
+func StartClient(logger *zap.Logger, client *discordgo.Session, registry *prometheus.Registry) {
+	err := client.Open()
+	if err != nil {
+		logger.Panic("Error while opening bot", zap.Error(err))
+	}
+
+	doPrometheus(registry) // blocking call
 }
 
 func doPreInit(logger *zap.Logger, client *discordgo.Session) *discordgo.Session {
 	db := database.NewDatabase(logger.With(zap.String("module", "database")), os.Getenv("MONGO_URI"), os.Getenv("DATABASE_NAME"), "config", "users", "verification_cache")
-	registry := prometheus.NewRegistry()
 
-	exporter.DoRegister(registry)
-	go doPrometheus(registry)
 	doEvents(logger, client, db)
 	doCommands(logger, db)
 
