@@ -59,29 +59,29 @@ func init() {
 	AddLocalizer(Vietnamese, &en.Map)
 }
 
-var localizers = make(map[Locale]*map[string]string)
+var localizers = make(map[Locale]*map[string]string, 30)
 
 func AddLocalizer(lang Locale, locale *map[string]string) {
 	localizers[lang] = locale
 }
 
 func TranslateRaw(text string, to Locale, data ...any) string {
-	return filli18nData(replaceInvalid(localizers[to], findKey(en.Map, text)), data)
+	return filli18nData(replaceInvalid(getLocalizer(to), findKey(&en.Map, text)), data)
 }
 
 func Translate(id string, to Locale, data ...any) string {
-	return filli18nData(replaceInvalid(localizers[to], id), data)
+	return filli18nData(replaceInvalid(getLocalizer(to), id), data)
 }
 
 func replaceInvalid(m *map[string]string, id string) string {
-	if (*m)[id] == "" {
-		return (*localizers[EnglishUS])[id]
+	if val, ok := (*m)[id]; ok && val != "" {
+		return val
 	}
-	return (*m)[id]
+	return (*localizers[EnglishUS])[id]
 }
 
-func findKey(m map[string]string, value string) string {
-	for k, v := range m {
+func findKey(m *map[string]string, value string) string {
+	for k, v := range *m {
 		if v == value {
 			return k
 		}
@@ -94,9 +94,13 @@ func filli18nData(text string, data []any) string {
 		return text
 	}
 
-	for i := 0; i < len(data); i++ {
+	for i := range data {
 		text = strings.Replace(text, "%", fmt.Sprintf("%v", data[i]), -1)
 	}
 
 	return text
+}
+
+func getLocalizer(lang Locale) *map[string]string {
+	return localizers[lang]
 }
