@@ -73,11 +73,11 @@ func (c *InMemoryCache[T, K]) start() {
 
 func (c *InMemoryCache[T, K]) updateExpiration(key T) {
 	expiration := time.Now().Add(c.timeoutEat)
-	c.removeCachedDevorer(key)
+	c.removeCachedDevourer(key)
 	c.queue.push(&devourItem[T]{value: key, t: expiration})
 }
 
-func (c *InMemoryCache[T, K]) removeCachedDevorer(key T) {
+func (c *InMemoryCache[T, K]) removeCachedDevourer(key T) {
 	for i := 0; i < c.queue.length; i++ {
 		if c.queue.items[i].value == key {
 			heap.Remove(c.queue, i)
