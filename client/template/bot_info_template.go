@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/Edouard127/FurryProtectorGo/core/builder/components/embed"
 	"github.com/Edouard127/FurryProtectorGo/i18n"
+	"github.com/Edouard127/FurryProtectorGo/utils"
 	"github.com/bwmarrin/discordgo"
 	"runtime"
 	"strconv"
@@ -28,20 +29,5 @@ var BotInfoTemplate = func(session *discordgo.Session, locale discordgo.Locale) 
 func getHostInfo() (cpus, ram string) {
 	var m runtime.MemStats
 	runtime.ReadMemStats(&m)
-	return strconv.Itoa(runtime.NumCPU()), formatRam(m.Alloc)
-}
-
-// formatRam formats the ram usage in KB
-func formatRam(ram uint64) string {
-	const unit = 1000
-	if ram < unit {
-		return fmt.Sprintf("%d B", ram)
-	}
-	div, exp := int64(unit), 0
-	for n := ram / unit; n >= unit; n /= unit {
-		div *= unit
-		exp++
-	}
-	return fmt.Sprintf("%.1f %cB",
-		float64(ram)/float64(div), "kMGTPE"[exp])
+	return strconv.Itoa(runtime.NumCPU()), utils.FormatRam(m.Alloc)
 }
