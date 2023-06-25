@@ -51,7 +51,5 @@ func DoRegister(registry *prometheus.Registry) {
 		MemberDeleteCounter,
 		MessageCreateCounter,
 		MessageDeleteCounter,
-		MessageUpdateCounter,
-
-		MessageTest)
+		MessageUpdateCounter)
 }
