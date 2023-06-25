@@ -9,7 +9,7 @@ import (
 
 type Runner[T any] interface {
 	GetLogger() *zap.Logger
-	Run(client *discordgo.Session, ctx *T)
+	Run(client *discordgo.Session, ctx *T) error
 }
 
 type SlashInteractionBuilder struct {

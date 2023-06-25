@@ -10,8 +10,13 @@ var Map = map[string]string{
 	"SetupVerification":                    "Setup the verification.",
 	"SetupVerificationQuestion":            "Please enter the questions for the verification.",
 	"SetupVerificationQuestionDescription": "Click on the button to add questions. % remaining.",
+	"BotInfo":                              "Bot info",
 	"Guilds":                               "Guilds",
 	"Users":                                "Users",
 	"CPUAmount":                            "CPUs",
 	"RAMUsage":                             "Memory usage",
+	"MissingPermission":                    "The bot is missing the permission %.",
+	"RequestedBy":                          "Requested by %",
+	"InvalidEmoji":                         "The emoji is invalid.",
+	"EmojiAdded":                           "Emoji added ! %",
 }

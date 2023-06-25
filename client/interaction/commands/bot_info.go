@@ -5,6 +5,7 @@ import (
 	"github.com/Edouard127/FurryProtectorGo/client/template"
 	"github.com/Edouard127/FurryProtectorGo/core/builder/components/embed"
 	"github.com/Edouard127/FurryProtectorGo/core/builder/interaction"
+	"github.com/Edouard127/FurryProtectorGo/i18n"
 	"github.com/bwmarrin/discordgo"
 	"go.uber.org/zap"
 )
@@ -22,13 +23,13 @@ func (b *BotInfo) GetLogger() *zap.Logger {
 	return b.Logger
 }
 
-func (b *BotInfo) Run(client *discordgo.Session, ctx *discordgo.InteractionCreate) {
-	client.InteractionRespond(ctx.Interaction, &discordgo.InteractionResponse{
+func (b *BotInfo) Run(client *discordgo.Session, ctx *discordgo.InteractionCreate) error {
+	return client.InteractionRespond(ctx.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
 		Data: &discordgo.InteractionResponseData{
 			Embeds: []*discordgo.MessageEmbed{
 				template.BotInfoTemplate(client, *ctx.GuildLocale).
-					SetFooter(embed.NewEmbedFooter("Requested by " + ctx.Member.User.Username).SetIconURL(ctx.Member.AvatarURL("32"))).Build(),
+					SetFooter(embed.NewEmbedFooter(i18n.Translate("RequestedBy", *ctx.GuildLocale, ctx.Member.User.Username)).SetIconURL(ctx.Member.AvatarURL("256"))).Build(),
 			},
 		},
 	})

@@ -1,11 +1,11 @@
 package commands
 
 import (
-	"fmt"
 	"github.com/Edouard127/FurryProtectorGo/client/database"
 	"github.com/Edouard127/FurryProtectorGo/core/builder/components/embed"
 	"github.com/Edouard127/FurryProtectorGo/core/builder/interaction"
 	"github.com/Edouard127/FurryProtectorGo/core/data"
+	"github.com/Edouard127/FurryProtectorGo/i18n"
 	"github.com/bwmarrin/discordgo"
 	"go.uber.org/zap"
 )
@@ -27,56 +27,52 @@ func (a *AddEmoji) GetLogger() *zap.Logger {
 	return a.Logger
 }
 
-func (a *AddEmoji) Run(client *discordgo.Session, ctx *discordgo.InteractionCreate) {
+func (a *AddEmoji) Run(client *discordgo.Session, ctx *discordgo.InteractionCreate) error {
 	emoji := ctx.ApplicationCommandData().Options[0].StringValue()
 
-	e, ok := data.ParseEmoji(emoji)
-	if !ok {
-		client.InteractionRespond(ctx.Interaction, &discordgo.InteractionResponse{
+	permission, _ := client.State.UserChannelPermissions(client.State.User.ID, ctx.ChannelID)
+	if data.UserPermission(permission)&data.ManageGuildExpressions != data.ManageGuildExpressions {
+		return client.InteractionRespond(ctx.Interaction, &discordgo.InteractionResponse{
 			Type: discordgo.InteractionResponseChannelMessageWithSource,
 			Data: &discordgo.InteractionResponseData{
 				Embeds: []*discordgo.MessageEmbed{
 					embed.NewEmbedBuilder().
-						SetTitle("Add an emoji").
-						SetDescription("The emoji is invalid").
-						SetFooter(embed.NewEmbedFooter("Requested by " + ctx.Member.User.Username).SetIconURL(ctx.Member.AvatarURL("256"))).
+						SetDescription(i18n.Translate("MissingPermission", *ctx.GuildLocale, data.ManageGuildExpressions)).
+						SetFooter(embed.NewEmbedFooter(i18n.Translate("RequestedBy", *ctx.GuildLocale, ctx.Member.User.Username)).SetIconURL(ctx.Member.AvatarURL("256"))).
 						Build(),
 				},
 			},
 		})
-		return
+	}
+
+	e, ok := data.ParseEmoji(emoji)
+	if !ok {
+		return client.InteractionRespond(ctx.Interaction, &discordgo.InteractionResponse{
+			Type: discordgo.InteractionResponseChannelMessageWithSource,
+			Data: &discordgo.InteractionResponseData{
+				Embeds: []*discordgo.MessageEmbed{
+					embed.NewEmbedBuilder().
+						SetDescription(i18n.Translate("InvalidEmoji", *ctx.GuildLocale)).
+						SetFooter(embed.NewEmbedFooter(i18n.Translate("RequestedBy", *ctx.GuildLocale, ctx.Member.User.Username)).SetIconURL(ctx.Member.AvatarURL("256"))).
+						Build(),
+				},
+			},
+		})
 	}
 
 	if len(ctx.ApplicationCommandData().Options) > 1 {
 		e.Name = ctx.ApplicationCommandData().Options[1].StringValue()
 	}
 
-	newEmoji, err := client.GuildEmojiCreate(ctx.GuildID, e.API()) // TODO: Check permission
-	if err != nil {
-		a.Logger.Error("Failed to create emoji", zap.Error(err))
-		client.InteractionRespond(ctx.Interaction, &discordgo.InteractionResponse{
-			Type: discordgo.InteractionResponseChannelMessageWithSource,
-			Data: &discordgo.InteractionResponseData{
-				Embeds: []*discordgo.MessageEmbed{
-					embed.NewEmbedBuilder().
-						SetTitle("Add an emoji").
-						SetDescription("Failed to create emoji").
-						SetFooter(embed.NewEmbedFooter("Requested by " + ctx.Member.User.Username).SetIconURL(ctx.Member.AvatarURL("256"))).
-						Build(),
-				},
-			},
-		})
-		return
-	}
+	newEmoji, _ := client.GuildEmojiCreate(ctx.GuildID, e.API()) // Error safe since we already check the permission
 
-	client.InteractionRespond(ctx.Interaction, &discordgo.InteractionResponse{
+	return client.InteractionRespond(ctx.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
 		Data: &discordgo.InteractionResponseData{
 			Embeds: []*discordgo.MessageEmbed{
 				embed.NewEmbedBuilder().
-					SetTitle("Add an emoji").
-					SetDescription(fmt.Sprintf("Emoji added ! %s", newEmoji.MessageFormat())).
-					SetFooter(embed.NewEmbedFooter("Requested by " + ctx.Member.User.Username).SetIconURL(ctx.Member.AvatarURL("256"))).
+					SetDescription(i18n.Translate("EmojiAdded", *ctx.GuildLocale, newEmoji.MessageFormat())).
+					SetFooter(embed.NewEmbedFooter(i18n.Translate("RequestedBy", *ctx.GuildLocale, ctx.Member.User.Username)).SetIconURL(ctx.Member.AvatarURL("256"))).
 					Build(),
 			},
 		},

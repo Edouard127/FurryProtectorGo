@@ -27,13 +27,10 @@ func (i *InteractionCreateEvent) Run(session *discordgo.Session, ctx *discordgo.
 	switch ctx.Type {
 	case discordgo.InteractionMessageComponent:
 		registers.InteractionComponents.Get(ctx.MessageComponentData().CustomID).Run(session, ctx)
-		return
 	case discordgo.InteractionApplicationCommand:
 		registers.InteractionCommands.Get(ctx.ApplicationCommandData().Name).Run(session, ctx)
-		return
 	case discordgo.InteractionModalSubmit:
 		registers.InteractionModals.Get(ctx.MessageComponentData().CustomID).Run(session, ctx)
-		return
 	}
 
 	exporter.InterationHist.With(prometheus.Labels{"guild": ctx.GuildID, "user": ctx.Member.User.ID, "interaction": ctx.ApplicationCommandData().Name}).Observe(time.Since(before).Seconds())
