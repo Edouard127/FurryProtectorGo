@@ -2,7 +2,6 @@ package database
 
 import (
 	"container/heap"
-	"fmt"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -97,7 +96,6 @@ func (c *InMemoryCache[T, K]) devour() {
 		if item == nil || item.t.After(now) {
 			break
 		}
-		fmt.Println("Deleting", item.value)
 		c.data.Delete(item.value)
 		c.queue.pop()
 	}
