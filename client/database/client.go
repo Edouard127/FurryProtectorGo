@@ -44,9 +44,17 @@ func (d *Database) Write(collection string, data any) (err error) {
 	return
 }
 
+func (d *Database) Replace(collection string, filter bson.M, data any) (err error) {
+	ctx, cancel := getContext()
+	defer cancel()
+
+	_ = d.Database(d.database).Collection(collection).FindOneAndReplace(ctx, filter, data, options.FindOneAndReplace().SetUpsert(true))
+	return
+}
+
 func (d *Database) Read(collection string, filter bson.M, data any) (err error) {
 	ctx, cancel := getContext()
 	defer cancel()
 
-	return d.Database(d.database).Collection(collection).FindOne(ctx, filter).Decode(&data)
+	return d.Database(d.database).Collection(collection).FindOne(ctx, filter).Decode(data)
 }

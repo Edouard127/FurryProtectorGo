@@ -5,10 +5,11 @@ import (
 	"time"
 )
 
-type InMemoryCache[T, K comparable] struct {
-	mu    sync.RWMutex
-	data  map[T]K
-	queue map[T]int64 // may be nil if purge is false
+type InMemoryCache[T comparable, K any] struct {
+	mu       sync.RWMutex
+	data     map[T]K
+	queue    map[T]int64 // may be nil if purge is false
+	onDelete chan T
 
 	doPurge    bool
 	timeoutEat int64
@@ -20,7 +21,14 @@ const (
 	defaultQueueSize = 0
 )
 
-func NewInMemoryCache[T, K comparable](timeout int64, purge bool, size int64) *InMemoryCache[T, K] {
+// NewInMemoryCache creates a new in-memory cache
+//
+// If purge is true, the cache will be purged every timeout milliseconds
+// and the function will launch a goroutine to do so
+// also, since purge is true, that means that a super struct
+// will handle the deletion of the cache entry
+// via the onDelete channel
+func NewInMemoryCache[T comparable, K any](timeout int64, purge bool, size int64) *InMemoryCache[T, K] {
 	if size < 0 {
 		size = defaultQueueSize
 	}
@@ -30,6 +38,7 @@ func NewInMemoryCache[T, K comparable](timeout int64, purge bool, size int64) *I
 		timeoutEat: timeout,
 	}
 	if purge {
+		c.onDelete = make(chan T)
 		c.queue = make(map[T]int64, size)
 		go c.start()
 	}
@@ -57,8 +66,13 @@ func (c *InMemoryCache[T, K]) Set(key T, value K) {
 
 func (c *InMemoryCache[T, K]) Delete(key T) {
 	c.mu.Lock()
-	delete(c.data, key)
-	delete(c.queue, key)
+	if c.doPurge {
+		c.onDelete <- key
+		// the super struct will delete the key
+	} else {
+		delete(c.data, key)
+		delete(c.queue, key)
+	}
 	c.mu.Unlock()
 }
 
@@ -96,8 +110,13 @@ func (c *InMemoryCache[T, K]) devour() {
 	now := time.Now().UnixMilli()
 	for key := range c.queue {
 		if c.queue[key] < now {
-			delete(c.queue, key)
-			delete(c.data, key)
+			if c.doPurge {
+				c.onDelete <- key
+				// the super struct must implement the delete method
+			} else {
+				delete(c.queue, key)
+				delete(c.data, key)
+			}
 		}
 	}
 	c.mu.Unlock()
