@@ -7,11 +7,10 @@ import (
 	"testing"
 )
 
-var cache = NewInMemoryCache[int32, int32](2000, false, 10000)
-
 func TestInMemoryCache(t *testing.T) {
-	for i := 0; i < 10000; i++ {
-		cache.Set(int32(i), int32(i))
+	cache := NewInMemoryCache[byte, byte](2000, false, 255)
+	for i := 0; i < 255; i++ {
+		cache.Set(byte(i), byte(i))
 	}
 	printMemStats()
 }

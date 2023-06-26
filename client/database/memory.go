@@ -87,7 +87,7 @@ exit:
 
 func (c *InMemoryCache[T, K]) updateExpiration(key T) {
 	if c.doPurge {
-		c.queue[key] = time.Now().UnixMilli() + c.timeoutEat
+		c.queue[key] = c.queue[key] + c.timeoutEat // the more the resource is requested, the more it stays in cache
 	}
 }
 
