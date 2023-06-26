@@ -1,11 +1,8 @@
 package database
 
 import (
-	"context"
 	"go.mongodb.org/mongo-driver/bson"
 )
-
-var ctx = context.Background()
 
 type MongoCache[V any] struct {
 	cache      *InMemoryCache[string, V]
