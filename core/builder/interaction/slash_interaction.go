@@ -3,58 +3,43 @@ package interaction
 import (
 	"github.com/Edouard127/FurryProtectorGo/core/data"
 	"github.com/bwmarrin/discordgo"
-	"go.uber.org/zap"
-	"strconv"
 )
 
-type Runner[T any] interface {
-	GetLogger() *zap.Logger
-	Run(client *discordgo.Session, ctx *T) error
-}
+type Runner[T any] func(client *discordgo.Session, ctx *T) error
 
-type SlashInteractionBuilder struct {
-	Type              data.CommandType          `json:"type"`
-	Name              string                    `json:"name"`
-	Description       string                    `json:"description"`
-	Required          bool                      `json:"required,omitempty"`
-	Choices           []*SlashInteractionChoice `json:"choices,omitempty"`
-	Options           []SlashInteraction        `json:"options,omitempty"`
-	ChannelTypes      []data.ChannelType        `json:"channel_types,omitempty"`
-	DefaultPermission string                    `json:"default_member_permission,omitempty"`
-	DMPermission      bool                      `json:"dm_permissions,omitempty"`
-	Nsfw              bool                      `json:"nsfw,omitempty"`
-	Version           data.Snowflake            `json:"version"`
-}
+type SlashInteractionBuilder discordgo.ApplicationCommand
 
 func NewSlashInteractionBuilder(name, description string) *SlashInteractionBuilder {
 	return &SlashInteractionBuilder{
-		Type:        data.ChatInput,
+		Type:        discordgo.ChatApplicationCommand,
 		Name:        name,
 		Description: description,
 	}
 }
 
-func (b *SlashInteractionBuilder) AddOption(option ...SlashInteraction) *SlashInteractionBuilder {
-	b.Options = append(b.Options, option...)
+func (b *SlashInteractionBuilder) AddOption(option ...*SlashInteractionOption) *SlashInteractionBuilder {
+	for _, o := range option {
+		b.Options = append(b.Options, (*discordgo.ApplicationCommandOption)(o))
+	}
 	return b
 }
 
 func (b *SlashInteractionBuilder) SetDefaultPermission(defaultPermission data.UserPermission) *SlashInteractionBuilder {
-	b.DefaultPermission = strconv.FormatUint(uint64(defaultPermission), 10)
+	f := int64(defaultPermission)
+	b.DefaultMemberPermissions = &f
 	return b
 }
 
 func (b *SlashInteractionBuilder) SetDMPermission(dmPermission bool) *SlashInteractionBuilder {
-	b.DMPermission = dmPermission
+	b.DMPermission = &dmPermission
 	return b
 }
 
 func (b *SlashInteractionBuilder) SetNsfw(nsfw bool) *SlashInteractionBuilder {
-	b.Nsfw = nsfw
+	b.NSFW = &nsfw
 	return b
 }
 
-func (b *SlashInteractionBuilder) SetVersion(version data.Snowflake) *SlashInteractionBuilder {
-	b.Version = version
-	return b
+func (b *SlashInteractionBuilder) Build() *discordgo.ApplicationCommand {
+	return (*discordgo.ApplicationCommand)(b)
 }

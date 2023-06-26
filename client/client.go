@@ -57,16 +57,14 @@ func doEvents(logger *zap.Logger, client *discordgo.Session, db *database.Databa
 }
 
 func commandRegister(logger *zap.Logger, client *discordgo.Session) (func(*interaction.SlashInteractionBuilder, interaction.Runner[discordgo.InteractionCreate]) (string, interaction.Runner[discordgo.InteractionCreate]), func()) {
-	var builders = make([]*interaction.SlashInteractionBuilder, 0)
+	var builders = make([]*discordgo.ApplicationCommand, 0)
 
 	return func(builder *interaction.SlashInteractionBuilder, runner interaction.Runner[discordgo.InteractionCreate]) (string, interaction.Runner[discordgo.InteractionCreate]) {
-			builders = append(builders, builder)
+			builders = append(builders, builder.Build())
 			return builder.Name, runner
 		}, func() {
-			endpoint := discordgo.EndpointApplicationGlobalCommands(os.Getenv("APP_ID"))
 			for _, builder := range builders {
-				client.ApplicationCommandCreate()
-				_, err := client.RequestWithBucketID("POST", endpoint, builder, endpoint)
+				_, err := client.ApplicationCommandCreate(os.Getenv("APP_ID"), "", builder)
 				if err != nil {
 					logger.Error("Error while registering command", zap.String("command", builder.Name), zap.Error(err))
 				}

@@ -16,8 +16,8 @@ func (e *Embed) SetTitle(title string) *Embed {
 	return e
 }
 
-func (e *Embed) SetType(embedType string) *Embed {
-	e.Type = discordgo.EmbedType(embedType)
+func (e *Embed) SetType(embedType discordgo.EmbedType) *Embed {
+	e.Type = embedType
 	return e
 }
 
