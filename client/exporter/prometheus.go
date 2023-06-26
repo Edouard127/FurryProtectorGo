@@ -23,11 +23,6 @@ var (
 		Help: "The number of member leave per guild",
 	}, []string{"guild"})
 
-	MessageTest = prometheus.NewHistogramVec(prometheus.HistogramOpts{
-		Name: "test",
-		Help: "The number of member leave per guild per day",
-	}, []string{"guild"})
-
 	MessageCreateCounter = prometheus.NewCounterVec(prometheus.CounterOpts{
 		Name: "discord_message_number",
 		Help: "The number of messages received by guild by channel per user",

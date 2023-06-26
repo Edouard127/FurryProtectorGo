@@ -19,7 +19,6 @@ func NewMessageCreateEvent(logger *zap.Logger, db *database.Database) func(*disc
 
 		exporter.MessageCreateCounter.With(prometheus.Labels{"guild": ctx.GuildID, "channel": ctx.ChannelID, "user": ctx.Author.ID}).Inc()
 
-		exporter.MessageTest.With(prometheus.Labels{"guild": ctx.GuildID}).Observe(1)
 		users.Set(ctx.Author.ID, users.Get(ctx.Author.ID).SetId(ctx.Author.ID).AddMessage(data.NewUserMessage(ctx.Content, ctx.GuildID, ctx.ChannelID, ctx.ID, ctx.Timestamp.UnixMilli())))
 	}
 }
