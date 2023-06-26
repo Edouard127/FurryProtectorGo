@@ -5,29 +5,15 @@ import (
 	"github.com/Edouard127/FurryProtectorGo/utils"
 	"runtime"
 	"testing"
-	"time"
 )
 
+var cache = NewInMemoryCache[int32, int32](2000, false, 10000)
+
 func TestInMemoryCache(t *testing.T) {
-	cache := NewInMemoryCache[int32, int32](2000, false, 10000)
-	printMemStats()
 	for i := 0; i < 10000; i++ {
 		cache.Set(int32(i), int32(i))
 	}
 	printMemStats()
-	simulateWait(1000)
-	printMemStats()
-	for i := 0; i < 10000; i++ {
-		cache.Get(int32(i))
-	}
-	simulateWait(4000)
-	fmt.Println(cache.Get(4694))
-	cache.Close()
-	printMemStats()
-}
-
-func simulateWait(timeout int) {
-	time.Sleep(time.Duration(timeout) * time.Millisecond)
 }
 
 func printMemStats() {

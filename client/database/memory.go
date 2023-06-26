@@ -7,7 +7,7 @@ import (
 
 type InMemoryCache[T, K comparable] struct {
 	mu    sync.RWMutex
-	data  map[T]*K
+	data  map[T]K
 	queue map[T]int64 // may be nil if purge is false
 
 	doPurge    bool
@@ -25,7 +25,7 @@ func NewInMemoryCache[T, K comparable](timeout int64, purge bool, size int64) *I
 		size = defaultQueueSize
 	}
 	c := &InMemoryCache[T, K]{
-		data:       make(map[T]*K, size),
+		data:       make(map[T]K, size),
 		doPurge:    purge,
 		timeoutEat: timeout,
 	}
@@ -36,7 +36,7 @@ func NewInMemoryCache[T, K comparable](timeout int64, purge bool, size int64) *I
 	return c
 }
 
-func (c *InMemoryCache[T, K]) Get(key T) (*K, bool) {
+func (c *InMemoryCache[T, K]) Get(key T) (K, bool) {
 	c.mu.RLock()
 	value, ok := c.data[key]
 	if ok {
@@ -48,7 +48,7 @@ func (c *InMemoryCache[T, K]) Get(key T) (*K, bool) {
 
 func (c *InMemoryCache[T, K]) Set(key T, value K) {
 	c.mu.Lock()
-	c.data[key] = &value
+	c.data[key] = value
 	if c.doPurge {
 		c.queue[key] = time.Now().UnixMilli() + c.timeoutEat
 	}
