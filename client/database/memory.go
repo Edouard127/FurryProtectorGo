@@ -66,13 +66,8 @@ func (c *InMemoryCache[T, K]) Set(key T, value K) {
 
 func (c *InMemoryCache[T, K]) Delete(key T) {
 	c.mu.Lock()
-	if c.doPurge {
-		c.onDelete <- key
-		// the super struct will delete the key
-	} else {
-		delete(c.data, key)
-		delete(c.queue, key)
-	}
+	delete(c.data, key)
+	delete(c.queue, key)
 	c.mu.Unlock()
 }
 
@@ -101,7 +96,7 @@ exit:
 
 func (c *InMemoryCache[T, K]) updateExpiration(key T) {
 	if c.doPurge {
-		c.queue[key] = c.queue[key] + c.timeoutEat // the more the resource is requested, the more it stays in cache
+		c.queue[key] = c.queue[key] + 1000 // the more the resource is requested, the more it stays in cache
 	}
 }
 
