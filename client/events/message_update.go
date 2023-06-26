@@ -8,20 +8,12 @@ import (
 	"go.uber.org/zap"
 )
 
-type MessageUpdateEvent struct {
-	*zap.Logger
-	*discordgo.Session
-	*database.Database
-}
+func NewMessageUpdateEvent(logger *zap.Logger, db *database.Database) func(*discordgo.Session, *discordgo.MessageUpdate) {
+	return func(session *discordgo.Session, ctx *discordgo.MessageUpdate) {
+		if ctx.BeforeUpdate == nil || ctx.Content == ctx.BeforeUpdate.Content {
+			return
+		}
 
-func NewMessageUpdateEvent(logger *zap.Logger, client *discordgo.Session, db *database.Database) *MessageUpdateEvent {
-	return &MessageUpdateEvent{logger, client, db}
-}
-
-func (m *MessageUpdateEvent) Run(_ *discordgo.Session, message *discordgo.MessageUpdate) {
-	if message.BeforeUpdate == nil || message.Content == message.BeforeUpdate.Content {
-		return
+		exporter.MessageUpdateCounter.With(prometheus.Labels{"guild": ctx.GuildID, "channel": ctx.ChannelID, "user": ctx.Author.ID}).Inc()
 	}
-
-	exporter.MessageUpdateCounter.With(prometheus.Labels{"guild": message.GuildID, "channel": message.ChannelID, "user": message.Author.ID}).Inc()
 }

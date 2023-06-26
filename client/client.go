@@ -5,6 +5,7 @@ import (
 	"github.com/Edouard127/FurryProtectorGo/client/events"
 	"github.com/Edouard127/FurryProtectorGo/client/exporter"
 	"github.com/Edouard127/FurryProtectorGo/client/interaction/commands"
+	"github.com/Edouard127/FurryProtectorGo/core/builder/interaction"
 	"github.com/Edouard127/FurryProtectorGo/registers"
 	"github.com/bwmarrin/discordgo"
 	"github.com/prometheus/client_golang/prometheus"
@@ -40,33 +41,47 @@ func doPreInit(logger *zap.Logger, client *discordgo.Session) *discordgo.Session
 	db := database.NewDatabase(logger.With(zap.String("module", "database")), os.Getenv("MONGO_URI"), os.Getenv("DATABASE_NAME"), "config", "users", "verification_cache")
 
 	doEvents(logger, client, db)
-	doCommands(logger, db)
-
-	endpoint := discordgo.EndpointApplicationGlobalCommands(os.Getenv("APP_ID"))
-
-	for _, command := range registers.InteractionCommands.Runners {
-		_, err := client.RequestWithBucketID("POST", endpoint, command, endpoint)
-		if err != nil {
-			command.GetLogger().Error("Error while registering command", zap.Error(err))
-		}
-	}
+	doCommands(logger, client, db)
 
 	return client
 }
 
 func doEvents(logger *zap.Logger, client *discordgo.Session, db *database.Database) {
-	client.AddHandler(events.NewInteractionCreateEvent(logger.With(zap.String("module", "events"), zap.String("event", "interaction_create")), client, db).Run)
-	client.AddHandler(events.NewMemberJoinEvent(logger.With(zap.String("module", "events"), zap.String("event", "member_join")), client, db).Run)
-	client.AddHandler(events.NewMemberDeleteEvent(logger.With(zap.String("module", "events"), zap.String("event", "member_leave")), client, db).Run)
-	client.AddHandler(events.NewMessageCreateEvent(logger.With(zap.String("module", "events"), zap.String("event", "message_create")), client, db).Run)
-	client.AddHandler(events.NewMessageDeleteEvent(logger.With(zap.String("module", "events"), zap.String("event", "message_delete")), client, db).Run)
-	client.AddHandler(events.NewMessageUpdateEvent(logger.With(zap.String("module", "events"), zap.String("event", "message_update")), client, db).Run)
-	client.AddHandler(events.NewReadyEvent(logger.With(zap.String("module", "events"), zap.String("event", "ready")), client, db).Run)
+	client.AddHandler(events.NewInteractionCreateEvent(logger.With(zap.String("module", "events"), zap.String("event", "interaction_create")), db))
+	client.AddHandler(events.NewMemberJoinEvent(logger.With(zap.String("module", "events"), zap.String("event", "member_join")), db))
+	client.AddHandler(events.NewMemberDeleteEvent(logger.With(zap.String("module", "events"), zap.String("event", "member_leave")), db))
+	client.AddHandler(events.NewMessageCreateEvent(logger.With(zap.String("module", "events"), zap.String("event", "message_create")), db))
+	client.AddHandler(events.NewMessageDeleteEvent(logger.With(zap.String("module", "events"), zap.String("event", "message_delete")), db))
+	client.AddHandler(events.NewMessageUpdateEvent(logger.With(zap.String("module", "events"), zap.String("event", "message_update")), db))
+	client.AddHandler(events.NewReadyEvent(logger.With(zap.String("module", "events"), zap.String("event", "ready")), db))
 }
 
-func doCommands(logger *zap.Logger, db *database.Database) {
-	registers.InteractionCommands.Register(commands.NewBotInfo(logger.With(zap.String("module", "general"), zap.String("command", "info")), db))
-	registers.InteractionCommands.Register(commands.NewAddEmoji(logger.With(zap.String("module", "general"), zap.String("command", "add_emoji")), db))
+func commandRegister(logger *zap.Logger, client *discordgo.Session) (func(*interaction.SlashInteractionBuilder, interaction.Runner[discordgo.InteractionCreate]) (string, interaction.Runner[discordgo.InteractionCreate]), func()) {
+	var builders = make([]*interaction.SlashInteractionBuilder, 0)
+
+	return func(builder *interaction.SlashInteractionBuilder, runner interaction.Runner[discordgo.InteractionCreate]) (string, interaction.Runner[discordgo.InteractionCreate]) {
+			builders = append(builders, builder)
+			return builder.Name, runner
+		}, func() {
+			endpoint := discordgo.EndpointApplicationGlobalCommands(os.Getenv("APP_ID"))
+			for _, builder := range builders {
+				client.ApplicationCommandCreate()
+				_, err := client.RequestWithBucketID("POST", endpoint, builder, endpoint)
+				if err != nil {
+					logger.Error("Error while registering command", zap.String("command", builder.Name), zap.Error(err))
+				}
+			}
+		}
+}
+
+func doCommands(logger *zap.Logger, client *discordgo.Session, db *database.Database) {
+	registerer, done := commandRegister(logger, client)
+
+	registers.InteractionCommands.Register(registerer(commands.NewAddEmoji(logger, db)))
+	registers.InteractionCommands.Register(registerer(commands.NewBotInfo(logger, db)))
+	registers.InteractionCommands.Register(registerer(commands.NewSetup(logger, db)))
+
+	done()
 }
 
 func doPrometheus(registry *prometheus.Registry) {

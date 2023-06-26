@@ -10,27 +10,20 @@ import (
 	"go.uber.org/zap"
 )
 
-type BotInfo struct {
-	*zap.Logger
-	*interaction.SlashInteractionBuilder
+func NewBotInfo(logger *zap.Logger, db *database.Database) (*interaction.SlashInteractionBuilder, interaction.Runner[discordgo.InteractionCreate]) {
+	return interaction.NewSlashInteractionBuilder("info", "Display the current information about the bot"), runBotInfo(logger)
 }
 
-func NewBotInfo(logger *zap.Logger, db *database.Database) (string, *BotInfo) {
-	return "info", &BotInfo{Logger: logger, SlashInteractionBuilder: interaction.NewSlashInteractionBuilder("info", "Display the current information about the bot")}
-}
-
-func (b *BotInfo) GetLogger() *zap.Logger {
-	return b.Logger
-}
-
-func (b *BotInfo) Run(client *discordgo.Session, ctx *discordgo.InteractionCreate) error {
-	return client.InteractionRespond(ctx.Interaction, &discordgo.InteractionResponse{
-		Type: discordgo.InteractionResponseChannelMessageWithSource,
-		Data: &discordgo.InteractionResponseData{
-			Embeds: []*discordgo.MessageEmbed{
-				template.BotInfoTemplate(client, *ctx.GuildLocale).
-					SetFooter(embed.NewEmbedFooter(i18n.Translate("RequestedBy", *ctx.GuildLocale, ctx.Member.User.Username)).SetIconURL(ctx.Member.AvatarURL("256"))).Build(),
+func runBotInfo(logger *zap.Logger) interaction.Runner[discordgo.InteractionCreate] {
+	return func(client *discordgo.Session, ctx *discordgo.InteractionCreate) error {
+		return client.InteractionRespond(ctx.Interaction, &discordgo.InteractionResponse{
+			Type: discordgo.InteractionResponseChannelMessageWithSource,
+			Data: &discordgo.InteractionResponseData{
+				Embeds: []*discordgo.MessageEmbed{
+					template.BotInfoTemplate(client, *ctx.GuildLocale).
+						SetFooter(embed.NewEmbedFooter(i18n.Translate("RequestedBy", *ctx.GuildLocale, ctx.Member.User.Username)).SetIconURL(ctx.Member.AvatarURL("256"))).Build(),
+				},
 			},
-		},
-	})
+		})
+	}
 }

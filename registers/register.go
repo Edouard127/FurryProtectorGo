@@ -25,6 +25,7 @@ func (i *RunnerRegister[T]) Register(index string, runner interaction.Runner[T])
 	i.Runners[index] = runner
 }
 
-func (i *RunnerRegister[T]) Get(index string) interaction.Runner[T] {
-	return i.Runners[index]
+func (i *RunnerRegister[T]) Get(index string) (interaction.Runner[T], bool) {
+	runner, ok := i.Runners[index]
+	return runner, ok
 }

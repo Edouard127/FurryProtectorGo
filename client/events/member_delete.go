@@ -8,18 +8,10 @@ import (
 	"go.uber.org/zap"
 )
 
-type MemberEventDelete struct {
-	*zap.Logger
-	*discordgo.Session
-	*database.Database
-}
-
-func NewMemberDeleteEvent(logger *zap.Logger, client *discordgo.Session, db *database.Database) *MemberEventDelete {
-	return &MemberEventDelete{logger, client, db}
-}
-
-func (m *MemberEventDelete) Run(_ *discordgo.Session, event *discordgo.GuildMemberAdd) {
-	exporter.MemberGauge.With(prometheus.Labels{"guild": event.GuildID}).Dec()
-	exporter.MemberDeleteCounter.With(prometheus.Labels{"guild": event.GuildID}).Inc()
-	m.Logger.Debug("Member deleted", zap.String("guild", event.GuildID), zap.String("member", event.Member.User.ID))
+func NewMemberDeleteEvent(logger *zap.Logger, db *database.Database) func(*discordgo.Session, *discordgo.GuildMemberAdd) {
+	return func(session *discordgo.Session, event *discordgo.GuildMemberAdd) {
+		exporter.MemberGauge.With(prometheus.Labels{"guild": event.GuildID}).Dec()
+		exporter.MemberDeleteCounter.With(prometheus.Labels{"guild": event.GuildID}).Inc()
+		logger.Debug("Member deleted", zap.String("guild", event.GuildID), zap.String("member", event.Member.User.ID))
+	}
 }

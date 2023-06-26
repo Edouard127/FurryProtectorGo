@@ -19,4 +19,10 @@ var Map = map[string]string{
 	"RequestedBy":                          "Requested by %",
 	"InvalidEmoji":                         "The emoji is invalid.",
 	"EmojiAdded":                           "Emoji added ! %",
+	"UnknownCommand":                       "Unknown command.",
+	"UnknownCommandDescription":            "This command doesn't exist.",
+	"UnknownComponent":                     "Unknown component.",
+	"UnknownComponentDescription":          "This component doesn't exist or it no longer is handled by the bot.",
+	"UnknownModal":                         "Unknown modal.",
+	"UnknownModalDescription":              "This modal doesn't exist.",
 }

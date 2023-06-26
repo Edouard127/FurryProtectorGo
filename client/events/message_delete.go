@@ -8,16 +8,8 @@ import (
 	"go.uber.org/zap"
 )
 
-type MessageDeleteEvent struct {
-	*zap.Logger
-	*discordgo.Session
-	*database.Database
-}
-
-func NewMessageDeleteEvent(logger *zap.Logger, client *discordgo.Session, db *database.Database) *MessageDeleteEvent {
-	return &MessageDeleteEvent{logger, client, db}
-}
-
-func (m *MessageDeleteEvent) Run(_ *discordgo.Session, message *discordgo.MessageDelete) {
-	exporter.MessageDeleteCounter.With(prometheus.Labels{"guild": message.GuildID, "channel": message.ChannelID}).Inc()
+func NewMessageDeleteEvent(logger *zap.Logger, db *database.Database) func(*discordgo.Session, *discordgo.MessageDelete) {
+	return func(session *discordgo.Session, ctx *discordgo.MessageDelete) {
+		exporter.MessageDeleteCounter.With(prometheus.Labels{"guild": ctx.GuildID, "channel": ctx.ChannelID}).Inc()
+	}
 }
